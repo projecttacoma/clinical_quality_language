@@ -1,44 +1,29 @@
 module CQL
   module Utilities
-   TIMING_CODE_MAPPING = {"starts before start" => "SBS",
-     "starts after start" => "SAS",
-     "starts during" => "SDU",
-     "starts before end" => "SBE",
-     "starts after end" => "SAE",
-     "starts concurrent start" => "SCWS",
-     "starts concurrent end" => "SCWE",
-     "starts concurrent" => "SCW",
-     "overlaps" => "overlaps"
+   TIMING_CODE_MAPPING = {
+     "startsafterstart" => "SAS",
+     "startsafterend" => "SAE",
+     "startsbeforestart" => "SBS",
+     "startsbefoeend" => "SBE",
+     "startsduring" => "SDU",
+     "startsconcurrentwithstart" => "SCWS",
+     "startsconcurrentwithend" => "SCWE",
+     "startsconcurrentwith" => "SCW",
+     "during" => "DURING",
+     "endsafterstart" => "EAS",
+     "endsafterend" => "EAE",
+     "endsbeforestart" =>"EBS",
+     "endsbeforeend" =>"EBE",
+     "endsconcurrentwithstart" => "ECWS",
+     "endsconcurrentwithend" => "ECWE",
+     "endsconcurrentwith" => "ECW",
+     "overlaps" => "overlaps",
+     "overlapsbefore" => "OB",
+     "overlapsafter" => "OA"
     }
 
     include HQMF::Conversion::Utilities
     
-    # Utility function to handle optional attributes
-    # @param xpath an XPath that identifies an XML attribute
-    # @return the value of the attribute or nil if the attribute is missing
-    def attr_val(xpath)
-      Utilities::attr_val(@entry, xpath)
-    end
-    
-    # Utility function to handle optional attributes
-    # @param xpath an XPath that identifies an XML attribute
-    # @return the value of the attribute or nil if the attribute is missing
-    def self.attr_val(node, xpath)
-      attr = node.at_xpath(xpath)
-      if attr
-        attr.value
-      else
-        nil
-      end
-    end
-    
-    def children_of(node)
-      node.xpath('*[not(self::text|self::comment)]')
-    end
-
-    def comments_on(node)
-      node.xpath('comment').map {|c| Utilities.attr_val(c, '@displayName')}
-    end
 
     def self.build_value(comparison, quantity, unit)
       return nil if !comparison || !quantity

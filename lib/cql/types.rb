@@ -170,7 +170,7 @@ module CQL
       type = 'EBE' if type == 'EBOD'
       type = 'OVERLAP' if type == 'Overlaps'
 
-      raise "unknown temporal reference type #{type}" unless HQMF::TemporalReference::TYPES.include? type
+      #raise "unknown temporal reference type #{type}" unless HQMF::TemporalReference::TYPES.include? type
       type
     end
     

@@ -5,6 +5,7 @@ require_relative 'cql/utilities.rb'
 require_relative 'cql/data_criteria.rb'
 require_relative 'cql/precondition.rb'
 require_relative 'cql/population.rb'
+require_relative 'cql/types.rb'
 require_relative 'visitor.rb'
 
 
