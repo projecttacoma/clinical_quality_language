@@ -37,6 +37,8 @@ let SexuallyActive =
 		or exists ([LaboratoryTest, Order: "Pap Test"] R where R.effectiveTime during MeasurePeriod)
 		or exists ([LaboratoryTest, Order: "Lab Tests During Pregnancy"] R where R.effectiveTime during MeasurePeriod)
 		or exists ([LaboratoryTest, Order: "Lab Tests for Sexually Transmitted Infections"] R where R.observedAtTime during MeasurePeriod)
+		or (exists ([Diagnosis: "Other Female Reproductive Conditions"] C where C.effectiveTime overlaps before MeasurePeriod)
+				and exists ([Diagnosis: "Genital Herpes"] C where C.effectiveTime overlaps before MeasurePeriod))
 
 let IPP =
 	SexuallyActive

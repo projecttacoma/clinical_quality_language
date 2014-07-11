@@ -45,49 +45,6 @@ module CQL
         @specific_occurrence_const, @source_data_criteria, comments)
     end
 
-    def self.parse_retrieve(retrieve)
-      text = retrieve.text()
-      text.gsub!("[","").gsub("]","")
-      topic = retrieve.topic().text()
-      modality = retrieve.modality().text()
-      valueset = retrieve.valueset().text()
-      oid = @valuesets[valueset] || ""
-      type = "#{topic}, #{modality}"
-      _id = format_id(text)
-      settings = {title: type, description: type, code_list_id: oid ,source_data_criteria: _id, id: _id, negation:false, display_name: type}
-      settings.merge!(parse_definition_and_status(type))                                      
-      DataCriteria.new(settings)
-    end
-
-
-    def parse_definition_and_status(type)
-      settings = HQMF::DataCriteria.get_settings_map.values.select {|x| x['title'] == type.downcase}
-      raise "multiple settings found for #{type}" if settings.length > 1
-      settings = settings.first
-
-      if (settings.nil?)
-        parts = type.split(',')
-        definition = parts[0].tr(':','').downcase.strip.tr(' ','_')
-        status = parts[1].downcase.strip.tr(' ','_') if parts.length > 1
-        settings = {'definition' => definition, 'status' => status}
-      end
-
-      definition = settings['definition']
-      status = settings['status']
-
-      # fix oddity with medication discharge having a bad definition
-      if definition == 'medication_discharge'
-        definition = 'medication'
-        status = 'discharge'
-      end 
-      status = nil if status && status.empty?
-
-      {definition: definition, status: status}
-    end
-
-    def format_id(value)
-      value.gsub(/\W/,' ').split.collect {|word| word.strip.capitalize }.join
-    end
     
   end
 end

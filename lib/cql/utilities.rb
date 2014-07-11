@@ -17,9 +17,9 @@ module CQL
      "endsconcurrentwithstart" => "ECWS",
      "endsconcurrentwithend" => "ECWE",
      "endsconcurrentwith" => "ECW",
-     "overlaps" => "overlaps",
-     "overlapsbefore" => "OB",
-     "overlapsafter" => "OA"
+     "overlaps" => "OVERLAP",
+     "overlapsbefore" => "OVERLAP",
+     "overlapsafter" => "OVERLAP"
     }
 
     include HQMF::Conversion::Utilities

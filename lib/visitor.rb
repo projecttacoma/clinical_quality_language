@@ -46,13 +46,13 @@ class Visitor <  org.cqframework.cql.gen.cqlBaseVisitor
     "GROUP_#{type}_#{next_id}"
   end
 
-  def parse(file)
+  def parse(file,hqmf_id="id",hqmf_set_id="hqmf_set_id",hqmf_version_number="hqmf_version_number",cms_id="cms_id",title="title",description="description")
     reset
     includeFile(file)
     dcs = data_criteria.values.compact.collect {|dc| dc.to_model}
     pcs = populations.values.compact.collect {|pc| pc.to_model}
     sdc = source_data_criteria.values.compact.collect{|dc| dc.to_model}
-    HQMF::Document.new("nqf_id", "id", "hqmf_set_id", "hqmf_version_number", "cms_id", "title", "description", pcs, dcs, sdc, [], measure_period, get_populations)
+    HQMF::Document.new("", hqmf_id, hqmf_set_id, hqmf_version_number, cms_id, title, description, pcs, dcs, sdc, [], measure_period, get_populations)
   end
 
   def get_populations()
@@ -106,7 +106,7 @@ class Visitor <  org.cqframework.cql.gen.cqlBaseVisitor
 
   # | expression ('or' | 'xor') expression                               # orExpression
   def visitOrExpression(ctx)
-    handlePrecondition(ctx,"anyTrue")
+    handlePrecondition(ctx,"atLeastOneTrue")
   end
 
   # | expression 'and' expression                                        # andExpression
@@ -141,41 +141,17 @@ class Visitor <  org.cqframework.cql.gen.cqlBaseVisitor
     obj = resolve(ext1)
     precondition = precondition = CQL::PreCondition.new(next_id, operator,[],nil)
     if !obj.kind_of?(CQL::PreCondition) && !obj.kind_of?(CQL::Population)
-        precondition.preconditions << ensure_precondition(obj)
+        precondition.preconditions << ensure_precondition(obj,operator)
     else
       precondition = obj if !obj.kind_of?(CQL::Population)
     end
     # #make sure its not a population
-    # if !precondition || precondition.kind_of?(String) || precondition.kind_of?(CQL::DataCriteria)
-    #    reference = precondition.kind_of?(CQL::DataCriteria) ? precondition.id : precondition # dc id or its a reference to a dc
-    #    child = @current_parsing_context[reference]
-    #    if !child.kind_of?(CQL::Population)
-    #      if !child || !child.kind_of?(CQL::PreCondition)
-    #        child = CQL::PreCondition.new(next_id, nil,nil,reference)
-    #      end
-    #      precondition = CQL::PreCondition.new(next_id, operator,[child],nil)
-    #    else
-
-    #    end
-    # end
-
-    #make sure we have an aggregate precondition
     exp2 = ctx.expression(1).accept(self)
     obj2 = resolve(exp2)
     if !obj2.kind_of?(CQL::Population)
-      precondition.preconditions << ensure_precondition(obj2)
+      precondition.preconditions << ensure_precondition(obj2,operator)
     end
 
-    # if exp2.kind_of?(CQL::DataCriteria) || exp2.kind_of?(String)
-    #    reference = exp2.kind_of?(CQL::DataCriteria) ? exp2.id : exp2
-    #    child = @current_parsing_context[reference]
-    #    if !child || !child.kind_of?(CQL::PreCondition)
-    #      child = CQL::PreCondition.new(next_id, nil,nil,reference)
-    #    end
-    #    precondition.preconditions << child
-    # else
-    #    precondition.preconditions << exp2
-    # end
     precondition
   end
 
@@ -278,8 +254,6 @@ class Visitor <  org.cqframework.cql.gen.cqlBaseVisitor
     dc
   end
 
-
-
   def visitValuesetDefinition(vs)
     # get the identifier and the oid for the vs and add it to the cache
     name = vs.STRING().text()
@@ -300,15 +274,16 @@ class Visitor <  org.cqframework.cql.gen.cqlBaseVisitor
   def visitRetrieve(retrieve)
     text = retrieve.text()
     unless @source_data_criteria[text]
-      text.gsub!("[","").gsub("]","")
+      text.gsub!("[","").gsub!("]","").gsub!('"',"").gsub!(":",": ")
       topic = retrieve.topic().text().underscore
       modality = retrieve.modality().text() if retrieve.modality()
       valueset = retrieve.valueset().text()
-      oid = @valuesets[valueset] || ""
+      oid = @valuesets[valueset] 
+      raise "Attempted to use undeclared valueset #{valueset}" unless oid
       type = (topic && modality) ? "#{topic}, #{modality}" : topic
       _id = format_id(text)
-      settings = {title: type, description: type, code_list_id: oid ,source_data_criteria: _id, id: _id, negation:false, display_name: type}
-      settings.merge!(parse_definition_and_status(type))
+      settings = parse_definition_and_status(type)
+      settings.merge!({title: type, description: text, code_list_id: oid ,source_data_criteria: _id, id: _id, negation:false, display_name: type})
       dc = CQL::DataCriteria.new(settings)
       @source_data_criteria[text] = dc
       @data_criteria[text] = dc.dup
@@ -459,23 +434,23 @@ class Visitor <  org.cqframework.cql.gen.cqlBaseVisitor
     pop
   end
 
-  def reference_to_precondition(reference)
+  def reference_to_precondition(reference,operator="allTrue")
     pre = nil
     if reference.kind_of?(CQL::DataCriteria)
-      pre =  CQL::PreCondition.new(next_id,nil,nil,reference.id)
+      pre =  CQL::PreCondition.new(next_id,operator,nil,reference.id)
     elsif reference.kind_of?(String)
       pre = @preconditions[reference] if @preconditions[reference]
-      pre = CQL::PreCondition.new(next_id,nil,nil,reference) if @data_criteria[reference]
+      pre = CQL::PreCondition.new(next_id,operator,nil,reference) if @data_criteria[reference]
       if pre.nil? && !@populations[reference]
-        pre = CQL::PreCondition.new(next_id,nil,nil,reference)
+        pre = CQL::PreCondition.new(next_id,operator,nil,reference)
         # need to setup something that finalizes this after parsing
       end
     end
     pre
   end
 
-  def ensure_precondition(pre)
-    pre.kind_of?(CQL::PreCondition) ? pre : reference_to_precondition(pre)
+  def ensure_precondition(pre,operator="allTrue")
+    pre.kind_of?(CQL::PreCondition) ? pre : reference_to_precondition(pre,operator)
   end
 
   def wrap_precondition(pre)
