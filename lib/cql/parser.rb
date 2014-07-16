@@ -93,25 +93,25 @@ module CQL
             "id" =>"PatientCharacteristicEthnicityEthnicity"})
       race = CQL::DataCriteria.new( {"title" => "Race",
             "description" => "Patient Characteristic Race: Race",
-            "code_list_id" => "2.16.840.1.114222.4.11.837",
+            "code_list_id" => "2.16.840.1.114222.4.11.836",
             "definition" => "patient_characteristic_race",
             "source_data_criteria" => "PatientCharacteristicRaceRace",
             "id" =>"PatientCharacteristicRaceRace"})
       gender = CQL::DataCriteria.new( {"title" => "Gender",
             "description" => "Patient Characteristic Gender: Gender",
-            "code_list_id" => "2.16.840.1.114222.4.11.837",
+            "code_list_id" => "2.16.840.1.113762.1.4.1",
             "definition" => "patient_characteristic_gender",
             "source_data_criteria" => "PatientCharacteristicGenderGender",
             "id" =>"PatientCharacteristicGenderGender"})
       payer = CQL::DataCriteria.new( {"title" => "Payer",
             "description" => "Patient Characteristic Payer: Payer",
-            "code_list_id" => "2.16.840.1.114222.4.11.837",
+            "code_list_id" => "2.16.840.1.114222.4.11.3591",
             "definition" => "patient_characteristic_payer",
             "source_data_criteria" => "PatientCharacteristicPayerPayer",
             "id" =>"PatientCharacteristicPayerPayer"})
       birthdate = CQL::DataCriteria.new( {"title" => "Birthdate",
             "description" => "Patient Characteristic Birthdate: birth date",
-            "code_list_id" => "2.16.840.1.114222.4.11.837",
+            "code_list_id" => "2.16.840.1.113883.3.560.100.4",
             "definition" => "patient_characteristic_birthdate",
             "source_data_criteria" => "PatientCharacteristicBirthdateBirthDate",
             "id" =>"PatientCharacteristicBirthdateBirthDate"})
@@ -393,16 +393,42 @@ module CQL
     end
 
     def handleGender(ctx)
-      dc = @data_criteria["Gender"].dup
-      dc.precondition_id=next_id
+      sdc = nil
+      
       value = ctx.expression[1].text.gsub('"',"")
       gender = {"male"=>"M","female"=>"F"}[value] || value
       raise "Only M,F values supported as Gender" if (!["M","F"].index(gender))
-      value = CQL::Coded.new("CD","Gender",value,nil)
+      dc = genderCriteria(gender)
+      dc.precondition_id=next_id
       dc.negation = ctx.children[1].text == "<>"
-      dc.value = value
       @data_criteria[dc.id] = dc
       dc
+    end
+
+    def genderCriteria(gender)
+      title = gender == "F" ? "Female" : "Male"
+      dc = @data_criteria["PatientCharacteristicSex#{title}"]
+      return dc.dup if dc
+      sdc = nil
+      if gender == "F"
+        sdc = CQL::DataCriteria.new({"definition" => "patient_characteristic_gender",
+                                    "title" =>"Female",
+                                    "id"=>"PatientCharacteristicSexFemale",
+                                    "source_data_criteria" =>"PatientCharacteristicSexFemale",
+                                    "description"=>"Patient Characteristic Sex: Female",
+                                    "code_list_id" => "2.16.840.1.113883.3.560.100.2"})
+      else
+        sdc = CQL::DataCriteria.new({"definition" => "patient_characteristic_gender",
+                                    "title" =>"Male",
+                                    "id"=>"PatientCharacteristicSexMale",
+                                    "source_data_criteria" =>"PatientCharacteristicSexMale",
+                                    "description"=>"Patient Characteristic Sex: Male",
+                                    "code_list_id" => "2.16.840.1.113883.3.560.100.1"})
+      end
+      sdc.value=CQL::Coded.new("CD","Gender",gender,nil)
+      @source_data_criteria[sdc.id] = sdc
+      @data_criteria[sdc.id] = sdc.dup
+      sdc.dup 
     end
 
     # This will except inEquality expressions 
