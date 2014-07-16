@@ -3,3 +3,4 @@ gem 'health-data-standards', git: "https://github.com/projectcypress/health-data
 gem 'pry'
 gem 'rake'
 gem 'minitest'
+gem 'sinatra'

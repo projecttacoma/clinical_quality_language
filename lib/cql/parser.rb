@@ -56,6 +56,16 @@ module CQL
       HQMF::Document.new("", hqmf_id, hqmf_set_id, hqmf_version_number, cms_id, title, description, pcs, dcs, sdc, [], measure_period, get_populations)
     end
 
+    def parseData(data,hqmf_id=UUID.generate,hqmf_set_id=UUID.generate,hqmf_version_number="0",cms_id="CMS00v0",title="title",description="description")
+      reset
+      set_default_criteria
+      includeData(data)
+      dcs = data_criteria.values.compact.collect {|dc| dc.to_model}
+      pcs = populations.values.compact.collect {|pc| pc.to_model}
+      sdc = source_data_criteria.values.compact.collect{|dc| dc.to_model}
+      HQMF::Document.new("", hqmf_id, hqmf_set_id, hqmf_version_number, cms_id, title, description, pcs, dcs, sdc, [], measure_period, get_populations)
+    end
+
     def get_populations()
       pops = [{"title"=>"Population1","id"=>"Population1"}]
 
@@ -123,7 +133,10 @@ module CQL
     end
 
     def includeFile(file)
-      data =  File.read(file)
+      includeData(File.read(file))
+    end
+
+    def includeData(data)
       input =  ANTLRInputStream.new(data);
       lexer =  CQL_LEXER.new(input)
       tokens = CommonTokenStream.new(lexer)
@@ -132,8 +145,6 @@ module CQL
       tree = parser.logic()
       visit(tree)
     end
-
-
 
     def visitLogic(logic)
       puts "logic"
