@@ -74,7 +74,12 @@ class Visitor <  org.cqframework.cql.gen.cqlBaseVisitor
   end
 
   def includeFile(file)
-    data =  File.read(file)
+    # kludge to handle the case where the CQL is passed as a string
+    data = file
+    if !(cql.include? "using") || !(cql.include? "context")
+      data =  File.read(file)
+    end
+
     input =  ANTLRInputStream.new(data);
     lexer =  CQL_LEXER.new(input)
     tokens = CommonTokenStream.new(lexer)
