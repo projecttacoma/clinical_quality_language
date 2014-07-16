@@ -9,6 +9,10 @@ Rake::TestTask.new(:test_unit) do |t|
   t.verbose = true
 end
 
+task :server do
+  ruby "lib/server/shim.rb"
+end
+
 task :test => [:test_unit] do
   system("open coverage/index.html")
 end
