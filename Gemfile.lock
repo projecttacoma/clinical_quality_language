@@ -66,6 +66,7 @@ GEM
       method_source (~> 0.8)
       slop (~> 3.4)
       spoon (~> 0.0)
+    rake (10.3.2)
     rest-client (1.6.7)
       mime-types (>= 1.16)
     rubyzip (0.9.9)
@@ -84,4 +85,6 @@ PLATFORMS
 
 DEPENDENCIES
   health-data-standards!
+  minitest
   pry
+  rake

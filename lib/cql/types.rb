@@ -97,6 +97,16 @@ module CQL
         {high_or_low: :low, inclusive: false}
       when 'equal to'
         {high_or_low: :both, inclusive: true}
+      when '<='
+        {high_or_low: :high, inclusive: true}
+      when '<'
+        {high_or_low: :high, inclusive: false}
+      when '>='
+        {high_or_low: :low, inclusive: true}
+      when '>'
+        {high_or_low: :low, inclusive: false}
+      when '=='
+        {high_or_low: :both, inclusive: true}  
       else
         raise "unknown mode for attribute: #{comparison}"
       end
@@ -116,15 +126,17 @@ module CQL
   class Coded
     include CQL::Utilities
 
-    attr_reader :code_list_id, :title
+    attr_reader :system,  :type, :code, :code_list_id
     
-    def initialize(code_list_id, title)
+    def initialize(type,system,code,code_list_id)
       @code_list_id = code_list_id
-      @title = title
+      @type = type
+      @system = system
+      @code=code
     end
     
     def to_model
-      HQMF::Coded.for_code_list(code_list_id, title)
+      HQMF::Coded.new('CD','Gender',code)
     end
     
   end
