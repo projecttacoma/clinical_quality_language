@@ -39,7 +39,7 @@ let SexuallyActive =
 		or exists ([LaboratoryTest, Order: "Lab Tests for Sexually Transmitted Infections"] R where R.observedAtTime during MeasurePeriod)
 
 let IPP =
-	SexuallyActive
+	SexuallyActive and InDemographic
 
 let DENOM =
 	IPP
