@@ -1,8 +1,12 @@
-using QLIM
+using QDM
+
+// CMS153v3
+// NQF0033		
+// Chlamydia Screening for Women
 
 context PATIENT // TODO: Look at turning this into a parameter with a 'with' statement
 
-parameter MeasurePeriod default interval[Date(2013, 1, 1), Date(2014, 1, 1))
+parameter MeasurePeriod default interval[Date(2012, 1, 1), Date(2012, 12, 31))
 
 valueset "Other Female Reproductive Conditions" = ValueSet("2.16.840.1.113883.3.464.1003.111.12.1006")
 valueset "Genital Herpes" = ValueSet("2.16.840.1.113883.3.464.1003.110.12.1049")
