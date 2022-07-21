@@ -89,16 +89,17 @@ GEM
     spoon (0.0.4)
       ffi
     systemu (2.6.4)
-    thread_safe (0.3.4)
-    thread_safe (0.3.4-java)
+    thread_safe (0.3.6)
+    thread_safe (0.3.6-java)
     tilt (1.4.1)
-    tzinfo (1.2.1)
+    tzinfo (1.2.10)
       thread_safe (~> 0.1)
     uuid (2.3.7)
       macaddr (~> 1.0)
 
 PLATFORMS
   java
+  ruby
 
 DEPENDENCIES
   health-data-standards!
